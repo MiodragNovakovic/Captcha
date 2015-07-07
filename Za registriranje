@@ -1,0 +1,51 @@
+<?php
+
+
+if (!extension_loaded('gd')) {
+    die("It looks like GD is not installed");
+}
+
+session_start();
+
+// velicina
+$iCaptchaLength = 4;
+
+// znakovi za koristenje: I, O, Q, S, 0, 1, 5
+$str_choice = 'ABCDEFGHJKLMNPRTUVWXYZ2346789';
+$str_captcha = '';
+// meta iz $str_choice
+for ($i=0; $i < $iCaptchaLength; $i++) {
+    do {
+        $ipos = rand(0, strlen($str_choice) - 1);
+    // provjera da se koristi samo jedan znak
+    } while (stripos($str_captcha, $str_choice[$ipos]) !== false);
+
+    $str_captcha .= $str_choice[$ipos];
+}
+
+// napisi KEPČA
+$_SESSION['captcha'] = $str_captcha;
+
+// ajmo na sliku
+$im = imagecreatetruecolor(150, 70);
+
+$bg = imagecolorallocate($im, 255, 255, 255);
+imagefill($im, 0, 0, $bg);
+
+
+for ($i=0; $i < $iCaptchaLength; $i++) {
+    $text_color = imagecolorallocate($im, rand(0, 100), rand(10, 100), rand(0, 100));
+    // font-path relative to this file
+    imagefttext($im, 35, rand(-10, 10), 20 + ($i * 30) + rand(-5, +5), 35 + rand(10, 30), $text_color, 'fonts/times_new_yorker.ttf', $str_captcha[$i]);
+}
+
+// da nam captcha bude uvijek novi
+header('Content-type: image/png');
+header('Pragma: no-cache');
+header('Cache-Control: no-store, no-cache, proxy-revalidate');
+
+// unisti
+imagepng($im);
+imagedestroy($im);
+
+?>
